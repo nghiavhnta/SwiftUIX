@@ -9,7 +9,7 @@ import SwiftUI
 /// A type that manages view presentation.
 public protocol DynamicViewPresenter: DynamicViewPresentable {
     #if os(iOS) || os(macOS) || os(tvOS) || targetEnvironment(macCatalyst)
-    /// The presentation coordinator for this presenter.
+    /// The presentation coordinator for this dynamicPresenter.
     var _cocoaPresentationCoordinator: CocoaPresentationCoordinator { get }
     #endif
     
@@ -40,12 +40,12 @@ extension DynamicViewPresenter {
         return presented
     }
     
-    /// The top-most available presenter.
+    /// The top-most available dynamicPresenter.
     public var topmostPresenter: DynamicViewPresenter {
         (topmostPresented as? DynamicViewPresenter) ?? self
     }
     
-    /// Indicates whether a presenter is currently presenting.
+    /// Indicates whether a dynamicPresenter is currently presenting.
     public var isPresenting: Bool {
         return presented != nil
     }
@@ -143,14 +143,14 @@ extension DynamicViewPresenter {
     
     @discardableResult
     public func dismissView(named name: AnyHashable) -> Future<Bool, Never> {
-        var presenter: DynamicViewPresenter? = self.presenter ?? self
+        var dynamicPresenter: DynamicViewPresenter? = self.dynamicPresenter ?? self
         
-        while let presented = presenter {
+        while let presented = dynamicPresenter {
             if presented.presentationName == name {
                 return presented.dismissSelf()
             }
             
-            presenter = presented.presented as? DynamicViewPresenter
+            dynamicPresenter = presented.presented as? DynamicViewPresenter
         }
         
         return .init({ $0(.success(false)) })
@@ -169,7 +169,7 @@ private struct DynamicViewPresenterEnvironmentKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    public var presenter: DynamicViewPresenter? {
+    public var dynamicPresenter: DynamicViewPresenter? {
         get {
             #if os(iOS) || os(tvOS) || os(macOS) || targetEnvironment(macCatalyst)
             return self[DynamicViewPresenterEnvironmentKey.self]

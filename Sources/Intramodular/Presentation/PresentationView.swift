@@ -10,7 +10,7 @@ import SwiftUI
 public struct PresentationView<Content: View>: View {
     private let content: Content
 
-    @State private var presenter: DynamicViewPresenter?
+    @State private var dynamicPresenter: DynamicViewPresenter?
 
     public init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -19,10 +19,10 @@ public struct PresentationView<Content: View>: View {
     public var body: some View {
         #if os(iOS) || os(macOS) || os(tvOS) || targetEnvironment(macCatalyst)
         content
-            .environment(\.presenter, presenter)
+            .environment(\.dynamicPresenter, dynamicPresenter)
             ._resolveAppKitOrUIKitViewControllerIfAvailable()
             .onAppKitOrUIKitViewControllerResolution {
-                self.presenter = $0
+                self.dynamicPresenter = $0
             }
         #else
         content

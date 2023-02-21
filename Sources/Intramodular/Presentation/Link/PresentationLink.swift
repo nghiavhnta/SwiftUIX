@@ -16,7 +16,7 @@ public struct PresentationLink<Destination: View, Label: View>: PresentationLink
     #endif
     @Environment(\.managedObjectContext) private var managedObjectContext
     @Environment(\.modalPresentationStyle) private var _environment_modalPresentationStyle
-    @Environment(\.presenter) private var presenter
+    @Environment(\.dynamicPresenter) private var dynamicPresenter
     @Environment(\.userInterfaceIdiom) private var userInterfaceIdiom
     
     private let _destination: Destination
@@ -82,8 +82,8 @@ public struct PresentationLink<Destination: View, Label: View>: PresentationLink
     
     public var body: some View {
         PassthroughView {
-            if let presenter = presenter, userInterfaceIdiom != .mac, presentationStyle != .automatic {
-                customPresentationButton(presenter: presenter)
+            if let dynamicPresenter = dynamicPresenter, userInterfaceIdiom != .mac, presentationStyle != .automatic {
+                customPresentationButton(dynamicPresenter: dynamicPresenter)
             } else if presentationStyle == .automatic {
                 systemSheetPresentationButton
             } else if presentationStyle == .popover, userInterfaceIdiom == .pad || userInterfaceIdiom == .mac {
@@ -102,11 +102,11 @@ public struct PresentationLink<Destination: View, Label: View>: PresentationLink
     }
     
     @ViewBuilder
-    private func customPresentationButton(presenter: DynamicViewPresenter) -> some View {
+    private func customPresentationButton(dynamicPresenter: DynamicViewPresenter) -> some View {
         #if os(iOS) || targetEnvironment(macCatalyst)
         if case .popover(_, _) = presentationStyle {
             IntrinsicGeometryReader { proxy in
-                if presenter is CocoaPresentationCoordinator {
+                if dynamicPresenter is CocoaPresentationCoordinator {
                     Button(
                         action: togglePresentation,
                         label: label
@@ -139,7 +139,7 @@ public struct PresentationLink<Destination: View, Label: View>: PresentationLink
             }
         } else {
             Button {
-                presenter.presentOnTop(presentation)
+                dynamicPresenter.presentOnTop(presentation)
                 
                 isPresented.wrappedValue = true
             } label: {
@@ -163,7 +163,7 @@ public struct PresentationLink<Destination: View, Label: View>: PresentationLink
         Button {
             togglePresentation()
             
-            presenter.present(presentation)
+            dynamicPresenter.present(presentation)
         } label: {
             label
         }
@@ -445,7 +445,7 @@ extension View {
 // MARK: - Auxiliary
 
 struct _PresentOnPressViewModifier<Destination: View>: ViewModifier {
-    @Environment(\.presenter) var presenter
+    @Environment(\.dynamicPresenter) var dynamicPresenter
     
     let destination: Destination
     
@@ -454,8 +454,8 @@ struct _PresentOnPressViewModifier<Destination: View>: ViewModifier {
     }
     
     func body(content: Content) -> some View {
-        presenter.ifSome { presenter in
-            Button(action: { presenter.present(self.destination) }) {
+        dynamicPresenter.ifSome { dynamicPresenter in
+            Button(action: { dynamicPresenter.present(self.destination) }) {
                 content.contentShape(Rectangle())
             }
         }.else {

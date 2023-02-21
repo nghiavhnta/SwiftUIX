@@ -295,10 +295,10 @@ extension View {
     public func navigationBarTitleView<V: View>(
         _ center: V
     ) -> some View {
-        withEnvironmentValue(\.presenter) { presenter in
+        withEnvironmentValue(\.dynamicPresenter) { dynamicPresenter in
             navigationBarItems(
                 leading: EmptyView(),
-                center: center.environment(\.presenter, presenter),
+                center: center.environment(\.dynamicPresenter, dynamicPresenter),
                 trailing: EmptyView(),
                 displayMode: .automatic
             )
